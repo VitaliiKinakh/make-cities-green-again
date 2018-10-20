@@ -5,6 +5,7 @@ import os
 import json
 import cv2 as cv
 from collections import defaultdict
+import gdal
 
 
 green_zones = {
@@ -162,7 +163,7 @@ class Processor:
 
         curr_starttime, curr_endtime = self.get_start_end_time(centroid)
 
-        fc = self.metadata_client.search(products="modis:09:CREFL", geom=bb, start_datetime=curr_starttime,
+        fc = self.metadata_client.search(products="modis:09:CREFL", geom=str(bb), start_datetime=curr_starttime,
                                          end_datetime=curr_endtime, limit=15)
         band_info = self.metadata_client.get_band("modis:09:CREFL:ndvi")
         physical_range = band_info['physical_range']
@@ -180,17 +181,15 @@ class Processor:
 
     @staticmethod
     def mask_image_based_on_ndvi(image, green_zone):
-        # ds = gdal.Open("data/images/" + city["NAME"].values[0] + "_NDVI" + ".tif")
-        # arr = np.array(ds.GetRasterBand(1).ReadAsArray())
         converted_image = cv.cvtColor(image, green_zone["color_code"])
         mask = cv.inRange(converted_image, green_zone["lower_hdvi_value"], green_zone["upper_hdvi_value"])
         return mask.astype(np.byte)
 
     def get_city_info(self, city_name):
         city_name = city_name.upper()
+        city = self.find_city_in_db(city_name)
         if city_name not in self.cities_info.keys() or "raster_filename" not in self.cities_info[city_name].keys():
-            city = self.find_city_in_db(city_name)
-            raster_filename = self.get_raster_for_city(city)
+            _ = self.get_raster_for_city(city)
         bb_df = city.bounds
         minx = bb_df["minx"].values[0]
         miny = bb_df["miny"].values[0]
@@ -200,11 +199,44 @@ class Processor:
         return [minx, miny, maxx, maxy, self.cities_info[city_name]["image_width"],
                 self.cities_info[city_name]["image_height"]]
 
-    def process_city(self, city_name, green_zone):
+    def process_city(self, city_name, green_zone_name):
+        if green_zone_name in self.cities_info[city_name].keys():
+            mask = cv.imread(self.cities_info[city_name][green_zone_name])
+            return mask
 
+        green_zone = green_zones[green_zone_name]
 
+        city = self.find_city_in_db(city_name)
 
+        if len(city) == 0:
+            return None
 
+        if city_name not in self.cities_info.keys() or "raster_filename" not in self.cities_info[city_name]:
+            raster_filename = self.get_raster_for_city(city)
+        else:
+            raster_filename = self.cities_info[city_name]["raster_filename"]
 
+        raster_image = cv.imread(raster_filename)
 
+        if "ndvi_raster_filename" not in self.cities_info[city_name]:
+            ndvi_raster_filename = self.get_ndvi_raster_for_city(city)
+        else:
+            ndvi_raster_filename = self.cities_info[city_name]["ndvi_raster_filename"]
 
+        ds = gdal.Open(ndvi_raster_filename)
+        ndvi_raster_image = np.array(ds.GetRasterBand(1).ReadAsArray())
+
+        mask_based_on_color = self.mask_image_based_on_color(raster_image, green_zone)
+        mask_based_on_ndvi = self.mask_image_based_on_ndvi(ndvi_raster_image, green_zone)
+
+        cv.namedWindow("Color", cv.WINDOW_FREERATIO)
+        cv.imshow("Color", mask_based_on_color)
+
+        cv.namedWindow("NDVI", cv.WINDOW_FREERATIO)
+        cv.imshow("NDVI", mask_based_on_ndvi)
+        cv.waitKey(0)
+
+        combined_mask = cv.bitwise_and(mask_based_on_color, mask_based_on_ndvi)
+        cv.imwrite("data/images/" + city_name + green_zone_name + ".png", combined_mask)
+        self.cities_info[city_name][green_zone_name] = "data/images/" + city_name + green_zone_name + ".png"
+        return combined_mask
