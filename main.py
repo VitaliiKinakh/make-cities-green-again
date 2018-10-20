@@ -14,14 +14,9 @@ south_endtime = "2018-03-01"
 
 if __name__ == "__main__":
     proc = Processor.Processor(path_to_cities_geom=path_to_cities, path_to_cities_info=path_to_dataset)
-    mask = proc.process_city("LVOV", "rich_green_zone")
+    city = proc.find_city_in_db("LVOV")
+    mask = proc.process_city("LVOV", "medium_green_zone")
 
     cv2.namedWindow("Mask", cv2.WINDOW_FREERATIO)
     cv2.imshow("Mask", mask)
     cv2.waitKey(0)
-    # mask = proc.mask_image_based_on_color(image)
-    #
-    # masked = cv2.bitwise_and(image, image, mask=mask)
-    #
-    # cv2.imwrite("data/images/LVOV_masked.tif", masked)
-

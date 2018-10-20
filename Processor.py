@@ -100,7 +100,7 @@ class Processor:
 
         scenes, ctx = dl.scenes.search(bb, products=["landsat:LC08:01:RT:TOAR"],
                                        start_datetime=curr_starttime, end_datetime=curr_endtime, cloud_fraction=0.1,
-                                       limit=15)
+                                       limit=1)
 
         if len(scenes) == 0:
             return None
@@ -112,7 +112,7 @@ class Processor:
 
         self.raster_client.raster(inputs=[image_id], bands=['red', 'green', 'blue', 'alpha'],
                                   scales=[[0, 5500], [0, 5500], [0, 5500], None],
-                                  data_type='Byte', cutline=str(bb), save=True,
+                                  data_type='Byte', cutline=bb, save=True,
                                   outfile_basename="data/images/" + raster_filename,
                                   resolution=15)
         self.cities_info[city_name]["raster_filename"] = "data/images/" + raster_filename + ".tif"
@@ -163,8 +163,8 @@ class Processor:
 
         curr_starttime, curr_endtime = self.get_start_end_time(centroid)
 
-        fc = self.metadata_client.search(products="modis:09:CREFL", geom=str(bb), start_datetime=curr_starttime,
-                                         end_datetime=curr_endtime, limit=15)
+        fc = self.metadata_client.search(products="modis:09:CREFL", geom=bb, start_datetime=curr_starttime,
+                                         end_datetime=curr_endtime, limit=1)
         band_info = self.metadata_client.get_band("modis:09:CREFL:ndvi")
         physical_range = band_info['physical_range']
         data_range = band_info['data_range']
@@ -172,7 +172,7 @@ class Processor:
 
         self.raster_client.raster(inputs=feat_ids, bands=['ndvi', 'alpha'],
                                   scales=[[data_range[0], data_range[1], physical_range[0], physical_range[1]], None],
-                                  data_type='Float32', cutline=str(bb), save=True,
+                                  data_type='Float32', cutline=bb, save=True,
                                   outfile_basename="data/images/" + city["NAME"].values[0] + "_NDVI",
                                   resolution=15)
         self.cities_info[city["NAME"].values[0]]["ndvi_raster_filename"] = "data/images/" + city["NAME"].values[0] + \
@@ -181,9 +181,9 @@ class Processor:
 
     @staticmethod
     def mask_image_based_on_ndvi(image, green_zone):
-        converted_image = cv.cvtColor(image, green_zone["color_code"])
-        mask = cv.inRange(converted_image, green_zone["lower_hdvi_value"], green_zone["upper_hdvi_value"])
-        return mask.astype(np.byte)
+        normalized = cv.normalize(image, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=cv.CV_32F)
+        mask = cv.inRange(normalized, green_zone["lower_ndvi_thresh"], green_zone["upper_ndvi_thresh"])
+        return mask
 
     def get_city_info(self, city_name):
         city_name = city_name.upper()
@@ -217,6 +217,7 @@ class Processor:
             raster_filename = self.cities_info[city_name]["raster_filename"]
 
         raster_image = cv.imread(raster_filename)
+        mask_based_on_color = self.mask_image_based_on_color(raster_image, green_zone)
 
         if "ndvi_raster_filename" not in self.cities_info[city_name]:
             ndvi_raster_filename = self.get_ndvi_raster_for_city(city)
@@ -226,7 +227,6 @@ class Processor:
         ds = gdal.Open(ndvi_raster_filename)
         ndvi_raster_image = np.array(ds.GetRasterBand(1).ReadAsArray())
 
-        mask_based_on_color = self.mask_image_based_on_color(raster_image, green_zone)
         mask_based_on_ndvi = self.mask_image_based_on_ndvi(ndvi_raster_image, green_zone)
 
         cv.namedWindow("Color", cv.WINDOW_FREERATIO)
