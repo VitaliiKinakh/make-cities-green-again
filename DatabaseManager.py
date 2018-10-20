@@ -66,17 +66,52 @@ class Processor:
             return None
 
         scene = scenes[0]
-        image_id = [scene.properties["id"]]
+        image_id = scene.properties["id"]
         raster_client = dl.Raster()
-        raster_filename = city["NAME"] + image_id
-        raster_client.raster(inputs=image_id, bands=['red', 'green', 'blue', 'alpha'],
+        raster_filename = city["NAME"].values[0]
+
+        if city["NAME"].values[0] in self.cities_info.keys():
+            return "data/images/" + city["NAME"].values[0] + ".tif"
+
+        raster_client.raster(inputs=[image_id], bands=['red', 'green', 'blue', 'alpha'],
                              scales=[[0, 5500], [0, 5500], [0, 5500], None],
-                             data_type='Byte', cutline=bb, save=True, outfile_basename=raster_filename,
+                             data_type='Byte', cutline=bb, save=True, outfile_basename="data/images/" + raster_filename,
                              resolution=15)
-        self.cities_info[city["NAME"]] = {"raster_filename": raster_filename + ".tif",
+        self.cities_info[city["NAME"].values[0]] = {"raster_filename": "data/images/" + raster_filename + ".tif",
                                           "trees_mask_raster_filename": None,
                                           "green_percentage": None,
                                           "money_earned": None}
-        return raster_filename + ".tif"
+        return "data/images/" + raster_filename + ".tif"
 
-    def mask_green_zones(self):
+    @staticmethod
+    def refine_image(image):
+        clahe = cv.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+
+        lab_image = cv.cvtColor(image, cv.COLOR_BGR2Lab)
+        l, a, b = cv.split(lab_image)
+        c1 = clahe.apply(l)
+
+        merged = cv.merge((c1, a, b))
+
+        merged_rgb = cv.cvtColor(merged, cv.COLOR_Lab2BGR)
+
+        cv.namedWindow("Image", cv.WINDOW_FREERATIO)
+        cv.imshow("Image", merged_rgb)
+        cv.waitKey(0)
+
+    @staticmethod
+    def adjust_gamma(image, gamma=1.0):
+        inv_gamma = 1.0 / gamma
+        table = np.array([((i / 255.0) ** inv_gamma) * 255
+                          for i in np.arange(0, 256)]).astype("uint8")
+        return cv.LUT(image, table)
+
+    @staticmethod
+    def mask_image_based_on_color(image):
+        image_lab = cv.cvtColor(image, cv.COLOR_BGR2Lab)
+        mask = cv.inRange(image_lab, (0, 105, 101), (255, 131, 121))
+        return mask
+
+    def get_ndvi_raster_for_city(self, city):
+
+
