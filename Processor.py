@@ -183,7 +183,7 @@ class Processor:
 
         nodata = arr[:, :, -1] == 0
         masked = np.where(nodata, 0, arr[:, :, 0])
-        
+
         tifffile.imsave("data/images/" + city["NAME"].values[0] + "_NDVI" + ".tif", masked)
         self.cities_info[city["NAME"].values[0]]["ndvi_raster_filename"] = "data/images/" + city["NAME"].values[0] + \
                                                                            "_NDVI" + ".tif"
