@@ -56,6 +56,10 @@ class Processor:
         self.raster_client = dl.Raster()
         self.metadata_client = dl.Metadata()
 
+        self.pixel_area = 225
+        self.tree_area = 50
+        self.tree_profit = 1.5
+
     @staticmethod
     def get_start_end_time(centroid):
         lat = centroid.values[0].y
@@ -239,10 +243,12 @@ class Processor:
                 self.cities_info[city_name]["image_height"]]
 
     def process_city(self, city_name, green_zone_name):
-        if green_zone_name in self.cities_info[city_name].keys():
-            mask = cv.imread(self.cities_info[city_name][green_zone_name])
-            return mask
+        if city_name in self.cities_info.keys():
+            if green_zone_name in self.cities_info[city_name].keys():
+                mask = cv.imread(self.cities_info[city_name][green_zone_name])
+                return mask
 
+        self.cities_info[city_name] = dict()
         green_zone = green_zones[green_zone_name]
 
         city = self.find_city_in_db(city_name)
@@ -258,20 +264,18 @@ class Processor:
         raster_image = cv.imread(raster_filename)
         mask_based_on_color = self.mask_image_based_on_color(raster_image, green_zone)
 
-        if "ndvi_raster_filename" not in self.cities_info[city_name]:
-            ndvi_raster_filename = self.get_ndvi_for_city(city)
-        else:
-            ndvi_raster_filename = self.cities_info[city_name]["ndvi_raster_filename"]
+        # if "ndvi_raster_filename" not in self.cities_info[city_name]:
+        #     ndvi_raster_filename = self.get_ndvi_for_city(city)
+        # else:
+        #     ndvi_raster_filename = self.cities_info[city_name]["ndvi_raster_filename"]
+        #
+        # ds = gdal.Open(ndvi_raster_filename)
+        # ndvi_raster_image = np.array(ds.GetRasterBand(1).ReadAsArray())
 
-        ds = gdal.Open(ndvi_raster_filename)
-        print(ndvi_raster_filename)
-        ndvi_raster_image = np.array(ds.GetRasterBand(1).ReadAsArray())
+        # mask_based_on_ndvi = self.mask_image_based_on_ndvi(ndvi_raster_image, green_zone)
 
-        print(np.max(ndvi_raster_image))
-
-        mask_based_on_ndvi = self.mask_image_based_on_ndvi(ndvi_raster_image, green_zone)
-
-        combined_mask = cv.bitwise_and(mask_based_on_color, mask_based_on_ndvi)
+        #combined_mask = cv.bitwise_and(mask_based_on_color, mask_based_on_ndvi)
+        combined_mask = mask_based_on_color
 
         black_values = combined_mask == 0
         blank_image = np.zeros(combined_mask.shape, np.uint8)
@@ -288,3 +292,29 @@ class Processor:
     def save_database(self):
         with open(self.path_to_cities_info, 'w') as outfile:
             outfile.write(json.dumps(self.cities_info))
+
+    def get_city_stats(self, city_name):
+        if city_name in self.cities_info.keys():
+            if "percentage" in self.cities_info[city_name].keys():
+                percentage = self.cities_info[city_name]["percentage"]
+                profit = self.cities_info[city_name]["profit"]
+                trees_area = self.cities_info[city_name]["trees_area"]
+                trees_count = self.cities_info[city_name]["trees_count"]
+                return {"percentage": percentage, "profit": profit, "trees_area": trees_area, "trees_count": trees_count}
+
+        zone_mask = self.process_city(city_name, "rich_green_zone")
+        non_zero_elems = cv.countNonZero(zone_mask[1])
+        percentage = float(non_zero_elems) / float(zone_mask.shape[0] * zone_mask.shape[1])
+        trees_area = non_zero_elems * self.pixel_area
+        trees_count = trees_area // self.tree_area
+        profit = trees_count * self.tree_profit
+
+        if city_name not in self.cities_info.keys():
+            self.cities_info[city_name] = dict()
+        self.cities_info[city_name]["percentage"] = percentage
+        self.cities_info[city_name]["profit"] = profit
+        self.cities_info[city_name]["trees_area"] = trees_area
+        self.cities_info[city_name]["trees_count"] = trees_count
+        return {"percentage": percentage, "profit": profit, "trees_area": trees_area, "trees_count": trees_count}
+
+

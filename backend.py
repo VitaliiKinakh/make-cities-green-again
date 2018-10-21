@@ -1,8 +1,6 @@
 from flask import Flask, request, send_from_directory, send_file
 import json
 from Processor import Processor
-import cv2 as cv
-import os
 
 app = Flask(__name__, static_url_path='')
 
@@ -32,9 +30,24 @@ def get_images(city):
     city = city.upper()
     result = get_city_info(city)
     bingLink = "https://dev.virtualearth.net/REST/v1/Imagery/Map/Aerial?mapArea={},{},{},{}&mapSize={},{}&key=AnWCHN24sBudyTLhwXbYLYvwlnGhcIjB7len3DFbyyDDbU9z7JdMQFE81IiUNYhe".format(result[0], result[1], result[2], result[3], int(result[4]), int(result[5]))
-
-    info = {'bingLink': bingLink, 'info': {'percent': 3, 'profit': 5, 'treeArea': 150, 'treeCount': 3123}}
+    city_stats = proc.get_city_stats(city)
+    info = {'bingLink': bingLink, 'info': {'percent': city_stats["percentage"], 'profit': city_stats["profit"],
+                                           'treeArea': city_stats["trees_area"], 'treeCount': city_stats["trees_count"]}}
     return json.dumps(info)
+
+
+@app.route("/landsat/<city>")
+def get_landsat_image(city):
+    city = city.replace('%20', ' ')
+    city = city.upper()
+
+    if city in proc.cities_info.keys():
+        if "raster_filename" in proc.cities_info[city].keys():
+            return send_file(proc.cities_info[city]["raster_filename"])
+
+    city_geom = proc.find_city_in_db(city)
+    raster_filename = proc.get_raster_for_city(city_geom)
+    return send_file(raster_filename, mimetype='image/tiff')
 
 
 @app.route('/rgz/<city>')
@@ -42,7 +55,7 @@ def get_rgz(city):
     city = city.replace('%20', ' ')
     city = city.upper()
     green_zone_name = "rich_green_zone"
-    mask = proc.process_city(city, green_zone_name)
+    _ = proc.process_city(city, green_zone_name)
 
     return send_file("data/images/" + city + green_zone_name + ".png", mimetype='image/png')
 
