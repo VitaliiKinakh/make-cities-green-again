@@ -1,0 +1,76 @@
+html,
+body{
+    height: 100;
+}
+
+body{
+    overflow: hidden;
+}
+
+.content:before {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    
+    display: block;
+    background-image: url('/img/background.jpg');
+    background-repeat: no-repeat;
+    margin-left: -2%;
+    margin-top: -2vh;
+    width: 105%;
+    height: 105vh;
+    
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    -o-filter: blur(3px);
+    -ms-filter: blur(3px);
+    filter: blur(3px);
+}
+
+.content {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    background-size: cover;
+    height: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+}
+
+#cover {
+    background-size: cover;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+}
+
+input, button{
+    font-size: 2rem !important;
+}
+
+.tiles div > div {
+    padding: 10px;
+    background-color: rgb(255, 255, 255, 0.85);
+}
+
+#cover-caption {
+    width: 100%;
+}
+
+h1{
+    font-weight: 500 !important;
+}
+
+.info-form{
+    margin-top: 5%;
+}
+
+#awesomplete_list_1 {
+    color: black;
+}

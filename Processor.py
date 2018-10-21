@@ -11,31 +11,31 @@ import tifffile
 
 green_zones = {
     "rich_green_zone": {
-        "lower_ndvi_thresh": 0.5,
+        "lower_ndvi_thresh": 0,
         "upper_ndvi_thresh": 1,
-        "lower_bound": (76, 57, 0),
-        "upper_bound": (123, 255, 255),
+        "lower_bound": (0, 81, 0),
+        "upper_bound": (255, 180, 60),
         "color_code": cv.COLOR_BGR2HSV
     },
     "medium_green_zone": {
-        "lower_ndvi_thresh": 0.4,
-        "upper_ndvi_thresh": 0.5,
-        "lower_bound": (76, 78, 0),
-        "upper_bound": (199, 255, 255),
+        "lower_ndvi_thresh": 0,
+        "upper_ndvi_thresh": 1,
+        "lower_bound": (0, 60, 0),
+        "upper_bound": (255, 180, 50),
         "color_code": cv.COLOR_BGR2HSV
     },
     "poor_green_zone": {
-        "lower_ndvi_thresh": 0.3,
-        "upper_ndvi_thresh": 0.4,
-        "lower_bound": (0, 0, 0),
-        "upper_bound": (180, 51, 255),
+        "lower_ndvi_thresh": 0,
+        "upper_ndvi_thresh": 1,
+        "lower_bound": (0, 0, 55),
+        "upper_bound": (255, 180, 230),
         "color_code": cv.COLOR_BGR2HSV
     },
     "very_poor_green_zone": {
-        "upper_ndvi_thresh": 0.2,
+        "upper_ndvi_thresh": 1,
         "lower_ndvi_thresh": 0,
-        "lower_bound": (0, 0, 0),
-        "upper_bound": (255, 51, 255),
+        "lower_bound": (0, 0, 50),
+        "upper_bound": (255, 180, 255),
         "color_code": cv.COLOR_BGR2HSV
     }
 }
@@ -228,11 +228,12 @@ class Processor:
         city = self.find_city_in_db(city_name)
         if city_name not in self.cities_info.keys() or "raster_filename" not in self.cities_info[city_name].keys():
             _ = self.get_raster_for_city(city)
+            self.save_database()
         bb_df = city.bounds
-        minx = bb_df["minx"].values[0]
-        miny = bb_df["miny"].values[0]
-        maxx = bb_df["maxx"].values[0]
-        maxy = bb_df["maxy"].values[0]
+        minx = bb_df["miny"].values[0]
+        miny = bb_df["minx"].values[0]
+        maxx = bb_df["maxy"].values[0]
+        maxy = bb_df["maxx"].values[0]
 
         return [minx, miny, maxx, maxy, self.cities_info[city_name]["image_width"],
                 self.cities_info[city_name]["image_height"]]
@@ -271,11 +272,18 @@ class Processor:
         mask_based_on_ndvi = self.mask_image_based_on_ndvi(ndvi_raster_image, green_zone)
 
         combined_mask = cv.bitwise_and(mask_based_on_color, mask_based_on_ndvi)
-        cv.imwrite("data/images/" + city_name + green_zone_name + ".png", combined_mask)
+
+        black_values = combined_mask == 0
+        blank_image = np.zeros(combined_mask.shape, np.uint8)
+
+        green_chanel = np.where(black_values, 0, 255)
+        mask = cv.merge((blank_image, green_chanel.astype(np.uint8), blank_image))
+
+        cv.imwrite("data/images/" + city_name + green_zone_name + ".png", mask)
         self.cities_info[city_name][green_zone_name] = "data/images/" + city_name + green_zone_name + ".png"
         self.save_database()
 
-        return combined_mask
+        return mask
 
     def save_database(self):
         with open(self.path_to_cities_info, 'w') as outfile:
