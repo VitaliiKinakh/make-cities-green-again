@@ -304,7 +304,9 @@ class Processor:
                 return {"percentage": percentage, "profit": profit, "trees_area": trees_area, "trees_count": trees_count}
 
         zone_mask = self.process_city(city_name, "rich_green_zone")
-        non_zero_elems = cv.countNonZero(zone_mask[1])
+        non_zero_elems = cv.countNonZero(zone_mask[:, :, 1])
+        print("Zone mask", zone_mask.shape)
+        print("Non zero", non_zero_elems)
         percentage = float(non_zero_elems) / float(zone_mask.shape[0] * zone_mask.shape[1])
         trees_area = non_zero_elems * self.pixel_area
         trees_count = trees_area // self.tree_area
