@@ -14,9 +14,4 @@ south_endtime = "2018-03-01"
 
 if __name__ == "__main__":
     proc = Processor.Processor(path_to_cities_geom=path_to_cities, path_to_cities_info=path_to_dataset)
-    city = proc.find_city_in_db("LVOV")
     mask = proc.process_city("LVOV", "medium_green_zone")
-
-    cv2.namedWindow("Mask", cv2.WINDOW_FREERATIO)
-    cv2.imshow("Mask", mask)
-    cv2.waitKey(0)

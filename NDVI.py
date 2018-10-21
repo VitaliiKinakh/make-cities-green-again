@@ -63,6 +63,10 @@ arr, meta = raster_client.ndarray(
 nodata = arr[:, :, -1] == 0
 masked = np.where(nodata, 0, arr[:, :, 0])
 
+print(arr.shape)
+print(np.max(arr[:, :, 0]))
+print(np.mean(arr[:, :, 0]))
+
 cv.namedWindow("NDVI", cv.WINDOW_FREERATIO)
 cv.imshow("NDVI", masked)
 cv.waitKey(0)
