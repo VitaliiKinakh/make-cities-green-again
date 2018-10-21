@@ -1,1 +1,1 @@
-{"LONDON": {"raster_filename": "data/images/LONDON.tif", "image_width": 2445, "image_height": 3433, "very_poor_green_zone": "data/images/LONDONvery_poor_green_zone.png"}}
+{"LONDON": {"raster_filename": "data/images/LONDON.tif", "image_width": 2445, "image_height": 3433, "very_poor_green_zone": "data/images/LONDONvery_poor_green_zone.png"}, "LVOV": {"raster_filename": "data/images/LVOV.tif", "image_width": 786, "image_height": 607, "very_poor_green_zone": "data/images/LVOVvery_poor_green_zone.png"}}

@@ -9,4 +9,6 @@ path_to_dataset = "data/cities_database.json"
 
 if __name__ == "__main__":
     proc = Processor.Processor(path_to_cities_geom=path_to_cities, path_to_cities_info=path_to_dataset)
-    mask = proc.get_city_stats("LONDON")
+    city_geom = proc.find_city_in_db("LONDON")
+    file = proc.get_raster_for_city(city_geom)
+    print(file)

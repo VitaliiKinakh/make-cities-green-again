@@ -94,9 +94,10 @@ class Processor:
 
     def get_raster_for_city(self, city):
         city_name = city["NAME"].values[0]
-        if city_name in self.cities_info.keys() and \
-                "raster_filename" in self.cities_info[city_name].keys():
-            return self.cities_info["raster_filename"]
+        print(city_name)
+        if city_name in self.cities_info.keys():
+            if "raster_filename" in self.cities_info[city_name].keys():
+                return self.cities_info[city_name]["raster_filename"]
 
         bb = self.find_bb_for_city(city)
         centroid = city["geometry"].centroid
