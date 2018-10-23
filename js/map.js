@@ -2,17 +2,18 @@ let cityName = window.location.pathname.split('/')[2];
 
 $.get('/city/'+cityName, (data) => {
     data = JSON.parse(data);
-    $('.main_img').attr('src', data.bingLink);
     $('#percentage').text(data.info.percent);
     $('#profit').text(data.info.profit);
     $('#treeArea').text(data.info.treeArea);
     $('#treeAmount').text(data.info.treeCount);
 });
 
-$('.mask_rgz').attr("src", "/mask_rgz/"+cityName);
-$('.mask_mgz').attr("src", "/mask_mgz/"+cityName);
-$('.mask_pgz').attr("src", "/mask_pgz/"+cityName);
-$('.mask_vpgz').attr("src", "/mask_vpgz/"+cityName);
+
+$('.main_img').attr("src", "/landsat/"+cityName);
+$('.mask_rgz').attr("src", "/rgz/"+cityName);
+$('.mask_mgz').attr("src", "/mgz/"+cityName);
+$('.mask_pgz').attr("src", "/pgz/"+cityName);
+$('.mask_vpgz').attr("src", "/vpgz/"+cityName);
 
 let list = data.map(function(i) { 
     if (i && i.name)
@@ -30,8 +31,29 @@ $('form').submit(function(e){
     e.preventDefault();
 })
 
+let imgArr = []
+
+let a = $('.pannable-image:eq(0)').ImageViewer();
+let b = $('.pannable-image:eq(1)').ImageViewer();
+let c = $('.pannable-image:eq(2)').ImageViewer();
+let d = $('.pannable-image:eq(3)').ImageViewer();
+let q = $('.pannable-image:eq(4)').ImageViewer();
+
+$('body').on('mapZoom', (e, par1, x, y) => {
+    b.data('ImageViewer').zoom(par1, {x, y})
+    c.data('ImageViewer').zoom(par1, {x, y})
+    d.data('ImageViewer').zoom(par1, {x, y})
+    q.data('ImageViewer').zoom(par1, {x, y})
+});
+
+
 $('#cityField').prop('placeholder', cityName.toUpperCase().replace('%20', ' '));
 
+let arr = ['rgz', 'mgz', 'pgz', 'vpgz'];
+
 $('input[type=range]').on('change mousemove', (e) => {
-    $('.mask_'+e.target.id).css('opacity', parseFloat(e.target.value)/100);
+    let containers = $('.iv-container')
+    let images = $('.iv-large-image')
+    $(images[arr.indexOf(e.target.id)+1]).css('opacity', parseFloat(e.target.value)/100);
+    $(containers[arr.indexOf(e.target.id)+1]).css('opacity', parseFloat(e.target.value)/100);
 });

@@ -9,6 +9,8 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="/js/cities.js"></script>
+        <link href="/css/imageviewer.css"  rel="stylesheet" type="text/css" />
+        <script src="/js/imageviewer.min.js"></script>
     </head>
     <body>
         <div class="container">
@@ -35,7 +37,7 @@
                             <div class="form-group">
                                 <label for="rgz">Rich green zone</label>
                                 <input type="range" id="rgz" name="rgz" 
-                                    min="0" max="100" value="30" step="1" />
+                                    min="0" max="100" value="0" step="1" />
                             </div>
                             <div class="form-group">
                                 <label for="mgz">Medium green zone</label>
@@ -55,12 +57,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-8">
-                    <img class="main_img" src="">
-                    <img class="mask_rgz" src="">
-                    <img class="mask_mgz" src="">
-                    <img class="mask_pgz" src="">
-                    <img class="mask_vpgz" src="">
+                <div сlass="col-8">
+                    <img class="main_img pannable-image" src="">
+                    <img class="mask_rgz pannable-image" src="">
+                    <img class="mask_mgz pannable-image" src="">
+                    <img class="mask_pgz pannable-image" src="">
+                    <img class="mask_vpgz pannable-image" src="">
                 </div>
             </div>
         </div>

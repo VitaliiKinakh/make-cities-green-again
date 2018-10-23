@@ -1,0 +1,8 @@
+libgdal-dev
+python-gdal
+libgdal1-dev
+gdal
+libsm6
+libxrender1
+libfontconfig1
+libice6
