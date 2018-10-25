@@ -1,19 +1,27 @@
 let cityName = window.location.pathname.split('/')[2];
 
-$.get('/city/'+cityName, (data) => {
-    data = JSON.parse(data);
-    $('#percentage').text(data.info.percent);
-    $('#profit').text(data.info.profit);
-    $('#treeArea').text(data.info.treeArea);
-    $('#treeAmount').text(data.info.treeCount);
-});
+let a,b,c,d,q;
 
+setTimeout(()=>{
+    $('.mask_rgz').attr("src", "/rgz/"+cityName);
+    $('.mask_pgz').attr("src", "/pgz/"+cityName);
+    $('.mask_vpgz').attr("src", "/vpgz/"+cityName);
+    $('.mask_mgz').attr("src", "/mgz/"+cityName);
+    a = $('.pannable-image:eq(0)').ImageViewer();
+    b = $('.pannable-image:eq(1)').ImageViewer();
+    c = $('.pannable-image:eq(2)').ImageViewer();
+    d = $('.pannable-image:eq(3)').ImageViewer();
+    q = $('.pannable-image:eq(4)').ImageViewer();
+    $.get('/city/'+cityName, (data) => {
+        data = JSON.parse(data);
+        $('#percentage').text((data.info.percent*100).toFixed(2));
+        $('#profit').text(data.info.profit.toFixed(2));
+        $('#treeArea').text(data.info.treeArea);
+        $('#treeAmount').text(data.info.treeCount);
+    });
+}, 15000);
 
 $('.main_img').attr("src", "/landsat/"+cityName);
-$('.mask_rgz').attr("src", "/rgz/"+cityName);
-$('.mask_mgz').attr("src", "/mgz/"+cityName);
-$('.mask_pgz').attr("src", "/pgz/"+cityName);
-$('.mask_vpgz').attr("src", "/vpgz/"+cityName);
 
 let list = data.map(function(i) { 
     if (i && i.name)
@@ -32,12 +40,6 @@ $('form').submit(function(e){
 })
 
 let imgArr = []
-
-let a = $('.pannable-image:eq(0)').ImageViewer();
-let b = $('.pannable-image:eq(1)').ImageViewer();
-let c = $('.pannable-image:eq(2)').ImageViewer();
-let d = $('.pannable-image:eq(3)').ImageViewer();
-let q = $('.pannable-image:eq(4)').ImageViewer();
 
 $('body').on('mapZoom', (e, par1, x, y) => {
     b.data('ImageViewer').zoom(par1, {x, y})

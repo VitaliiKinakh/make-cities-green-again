@@ -234,7 +234,7 @@ class Processor:
         
         for i in range(0, img_ndvi.shape[0]):
             for j in range(0, img_ndvi.shape[1]):
-                if img_ndvi[i, j][0] > 140:
+                if img_ndvi[i, j][0] > 155:
                     img_ndvi[i, j][0] = 0
                     img_ndvi[i, j][1] = 0
                     img_ndvi[i, j][2] = 0
@@ -303,7 +303,7 @@ class Processor:
         
         for i in range(0, img_ndvi.shape[0]):
             for j in range(0, img_ndvi.shape[1]):
-                if mask[i, j][1] == 255 and img_ndvi[i, j][1] == 255:
+                if img_ndvi[i, j][1] == 255:
                     mask[i, j][1] = 0
 
         tmp = cv.cvtColor(mask, cv.COLOR_BGR2GRAY)
