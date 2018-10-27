@@ -32,25 +32,24 @@ def plot_histogram_HS (image, parts, fig, color):
 
 if __name__ == "__main__":
     trees = [load_image('test_dataset/trees{}.png'.format(i)) for i in range(1,26)]
-    non-trees = [load_image('test_dataset/non-trees{}.png'.format(i)) for i in range(1,26)]
-    #
-    # trees = load_image('test_dataset/trees.png')
-    # if trees is None:
-    #     sys.exit('Fail while loading image')
-    #
-    # buildings = load_image('test_dataset/buildings.png')
-    # if trees is None:
-    #     sys.exit('Fail while loading image')
-    #
-    # fig = plt.figure()
-    # ax1 = fig.add_subplot(111, projection='3d')
-    #
-    # trees = cv2.cvtColor(trees, cv2.COLOR_BGR2HSV)
-    # buildings = cv2.cvtColor(buildings, cv2.COLOR_BGR2HSV)
-    #
-    # plot_histogram_HS(trees, [0,1], ax1, 'r')
-    # plot_histogram_HS(buildings, [0,1], ax1, 'b')
-    # plt.show()
+    non_trees = [load_image('test_dataset/non-trees{}.png'.format(i)) for i in range(1,26)]
+
+    # cv2.imshow("trees1", trees[24])
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+alg
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111, projection='3d')
+
+    trees = [cv2.cvtColor(tree, cv2.COLOR_BGR2HSV) for tree in trees]
+    non_trees = [cv2.cvtColor(non_tree, cv2.COLOR_BGR2HSV) for non_tree in non_trees]
+
+    for tree in trees:
+        plot_histogram_HS(tree, [0,1], ax1, 'r')
+    for non_tree in non_trees:
+      plot_histogram_HS(non_tree, [0,1], ax1, 'b')
+
+    plt.show()
 
 
 
